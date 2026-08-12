@@ -62,7 +62,7 @@ export function DashboardClient({ initialLists }: { initialLists: ListWithMeta[]
   }
 
   return (
-    <main className="mt-10">
+    <main className="mt-6 md:mt-10">
       <div className="flex items-center justify-between">
         <h2 className="text-lg font-semibold text-slate-900">我的清单</h2>
         <button
@@ -74,7 +74,7 @@ export function DashboardClient({ initialLists }: { initialLists: ListWithMeta[]
       </div>
 
       {lists.length === 0 ? (
-        <div className="mt-4 rounded-2xl border-2 border-dashed border-slate-200 bg-white p-14 text-center">
+        <div className="mt-4 rounded-2xl border-2 border-dashed border-slate-200 bg-white p-8 text-center md:p-14">
           <div className="text-4xl">📭</div>
           <p className="mt-3 text-sm font-medium text-slate-700">还没有清单</p>
           <p className="mt-1 text-sm text-slate-400">创建第一份备件计划清单，开始协作吧</p>

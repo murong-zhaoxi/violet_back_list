@@ -359,83 +359,164 @@ export function ListDetailClient({
       );
     }
     return (
-      <div className="overflow-x-auto">
-        <table className="w-full text-left text-sm">
-          <thead>
-            <tr className="border-b border-slate-200 text-xs text-slate-400">
-              <th className="px-4 py-2 font-medium w-14">编号</th>
-              <th className="px-4 py-2 font-medium">名称</th>
-              <th className="px-4 py-2 font-medium">型号/规格</th>
-              <th className="px-4 py-2 font-medium w-24">数量</th>
-              <th className="px-4 py-2 font-medium w-28">负责人</th>
-              <th className="px-4 py-2 font-medium w-28">状态</th>
-              <th className="px-4 py-2 font-medium w-20">评论</th>
-              {canEdit && <th className="px-4 py-2 font-medium w-28 text-right">操作</th>}
-            </tr>
-          </thead>
-          <tbody>
-            {items.map((item, idx) => {
-              const meta = STATUS_META[item.status];
-              return (
-                <tr key={item.id} className="border-b border-slate-100 transition hover:bg-slate-50/60">
-                  <td className="px-4 py-3 font-mono text-xs text-slate-400">
-                    {gIdx}.{idx + 1}
-                  </td>
-                  <td className="px-4 py-3">
-                    <div className="font-medium text-slate-900">{item.name}</div>
-                    {item.notes && (
-                      <div className="mt-0.5 max-w-xs truncate text-xs text-slate-400" title={item.notes}>
-                        📝 {item.notes}
-                      </div>
-                    )}
-                  </td>
-                  <td className="px-4 py-3 text-slate-600">{item.model || "—"}</td>
-                  <td className="px-4 py-3 text-slate-600">
-                    {item.qty} {item.unit}
-                  </td>
-                  <td className="px-4 py-3">
-                    {item.assignee ? (
-                      <span className="inline-flex items-center gap-1.5">
-                        <span className="flex h-5 w-5 items-center justify-center rounded-full bg-gradient-to-br from-violet-500 to-blue-500 text-[10px] font-semibold text-white">
-                          {item.assignee.name.slice(0, 1)}
+      <>
+        {/* 桌面端表格 */}
+        <div className="hidden overflow-x-auto md:block">
+          <table className="w-full text-left text-sm">
+            <thead>
+              <tr className="border-b border-slate-200 text-xs text-slate-400">
+                <th className="px-4 py-2 font-medium w-14">编号</th>
+                <th className="px-4 py-2 font-medium">名称</th>
+                <th className="px-4 py-2 font-medium">型号/规格</th>
+                <th className="px-4 py-2 font-medium w-24">数量</th>
+                <th className="px-4 py-2 font-medium w-28">负责人</th>
+                <th className="px-4 py-2 font-medium w-28">状态</th>
+                <th className="px-4 py-2 font-medium w-20">评论</th>
+                {canEdit && <th className="px-4 py-2 font-medium w-28 text-right">操作</th>}
+              </tr>
+            </thead>
+            <tbody>
+              {items.map((item, idx) => {
+                const meta = STATUS_META[item.status];
+                return (
+                  <tr key={item.id} className="border-b border-slate-100 transition hover:bg-slate-50/60">
+                    <td className="px-4 py-3 font-mono text-xs text-slate-400">
+                      {gIdx}.{idx + 1}
+                    </td>
+                    <td className="px-4 py-3">
+                      <div className="font-medium text-slate-900">{item.name}</div>
+                      {item.notes && (
+                        <div className="mt-0.5 max-w-xs truncate text-xs text-slate-400" title={item.notes}>
+                          📝 {item.notes}
+                        </div>
+                      )}
+                    </td>
+                    <td className="px-4 py-3 text-slate-600">{item.model || "—"}</td>
+                    <td className="px-4 py-3 text-slate-600">
+                      {item.qty} {item.unit}
+                    </td>
+                    <td className="px-4 py-3">
+                      {item.assignee ? (
+                        <span className="inline-flex items-center gap-1.5">
+                          <span className="flex h-5 w-5 items-center justify-center rounded-full bg-gradient-to-br from-violet-500 to-blue-500 text-[10px] font-semibold text-white">
+                            {item.assignee.name.slice(0, 1)}
+                          </span>
+                          <span className="text-slate-600">{item.assignee.name}</span>
                         </span>
-                        <span className="text-slate-600">{item.assignee.name}</span>
-                      </span>
-                    ) : (
-                      <span className="text-slate-300">—</span>
-                    )}
-                  </td>
-                  <td className="px-4 py-3">
-                    {canEdit ? (
-                      <select
-                        value={item.status}
-                        onChange={(e) => handleQuickStatus(item, e.target.value as ItemStatus)}
-                        className={`cursor-pointer rounded-md border px-2 py-1 text-xs font-medium ${meta.cls} focus:outline-none`}
+                      ) : (
+                        <span className="text-slate-300">—</span>
+                      )}
+                    </td>
+                    <td className="px-4 py-3">
+                      {canEdit ? (
+                        <select
+                          value={item.status}
+                          onChange={(e) => handleQuickStatus(item, e.target.value as ItemStatus)}
+                          className={`cursor-pointer rounded-md border px-2 py-1 text-xs font-medium ${meta.cls} focus:outline-none`}
+                        >
+                          {STATUS_ORDER.map((s) => (
+                            <option key={s} value={s}>
+                              {STATUS_META[s].label}
+                            </option>
+                          ))}
+                        </select>
+                      ) : (
+                        <span className={`inline-block rounded-md border px-2 py-1 text-xs font-medium ${meta.cls}`}>
+                          {meta.label}
+                        </span>
+                      )}
+                    </td>
+                    <td className="px-4 py-3">
+                      <button
+                        onClick={() => setActiveCommentItem(item)}
+                        className="inline-flex items-center gap-1 rounded-md px-2 py-1 text-xs font-medium text-slate-500 transition hover:bg-violet-50 hover:text-violet-600"
+                        title="查看/发表评论"
                       >
-                        {STATUS_ORDER.map((s) => (
-                          <option key={s} value={s}>
-                            {STATUS_META[s].label}
-                          </option>
-                        ))}
-                      </select>
-                    ) : (
-                      <span className={`inline-block rounded-md border px-2 py-1 text-xs font-medium ${meta.cls}`}>
-                        {meta.label}
-                      </span>
+                        💬 {item._count?.comments ?? 0}
+                      </button>
+                    </td>
+                    {canEdit && (
+                      <td className="px-4 py-3">
+                        <div className="flex justify-end gap-2 text-xs">
+                          <button
+                            onClick={() => openEdit(item)}
+                            className="text-slate-400 transition hover:text-violet-600"
+                          >
+                            编辑
+                          </button>
+                          <button
+                            onClick={() => handleDeleteItem(item)}
+                            className="text-slate-400 transition hover:text-red-500"
+                          >
+                            删除
+                          </button>
+                        </div>
+                      </td>
                     )}
-                  </td>
-                  <td className="px-4 py-3">
+                  </tr>
+                );
+              })}
+            </tbody>
+          </table>
+        </div>
+
+        {/* 移动端卡片列表 */}
+        <div className="divide-y divide-slate-100 md:hidden">
+          {items.map((item, idx) => {
+            const meta = STATUS_META[item.status];
+            return (
+              <div key={item.id} className="px-4 py-3">
+                <div className="flex items-start justify-between gap-2">
+                  <div className="min-w-0">
+                    <div className="flex items-center gap-2">
+                      <span className="shrink-0 font-mono text-xs text-slate-400">
+                        {gIdx}.{idx + 1}
+                      </span>
+                      <span className="truncate font-medium text-slate-900">{item.name}</span>
+                    </div>
+                    {item.model && (
+                      <div className="mt-0.5 pl-6 text-xs text-slate-500">型号：{item.model}</div>
+                    )}
+                    {item.notes && (
+                      <div className="mt-0.5 pl-6 text-xs text-slate-400">📝 {item.notes}</div>
+                    )}
+                  </div>
+                  {canEdit ? (
+                    <select
+                      value={item.status}
+                      onChange={(e) => handleQuickStatus(item, e.target.value as ItemStatus)}
+                      className={`shrink-0 cursor-pointer rounded-md border px-1.5 py-0.5 text-xs font-medium ${meta.cls} focus:outline-none`}
+                    >
+                      {STATUS_ORDER.map((s) => (
+                        <option key={s} value={s}>
+                          {STATUS_META[s].label}
+                        </option>
+                      ))}
+                    </select>
+                  ) : (
+                    <span className={`shrink-0 rounded-md border px-1.5 py-0.5 text-xs font-medium ${meta.cls}`}>
+                      {meta.label}
+                    </span>
+                  )}
+                </div>
+                <div className="mt-2 flex items-center justify-between text-xs text-slate-600">
+                  <div className="flex min-w-0 items-center gap-3">
+                    <span className="shrink-0">
+                      {item.qty} {item.unit}
+                    </span>
+                    <span className="truncate">
+                      {item.assignee ? `👤 ${item.assignee.name}` : "未指派"}
+                    </span>
+                  </div>
+                  <div className="flex shrink-0 items-center gap-3">
                     <button
                       onClick={() => setActiveCommentItem(item)}
-                      className="inline-flex items-center gap-1 rounded-md px-2 py-1 text-xs font-medium text-slate-500 transition hover:bg-violet-50 hover:text-violet-600"
-                      title="查看/发表评论"
+                      className="text-slate-500 transition hover:text-violet-600"
                     >
                       💬 {item._count?.comments ?? 0}
                     </button>
-                  </td>
-                  {canEdit && (
-                    <td className="px-4 py-3">
-                      <div className="flex justify-end gap-2 text-xs">
+                    {canEdit && (
+                      <>
                         <button
                           onClick={() => openEdit(item)}
                           className="text-slate-400 transition hover:text-violet-600"
@@ -448,30 +529,30 @@ export function ListDetailClient({
                         >
                           删除
                         </button>
-                      </div>
-                    </td>
-                  )}
-                </tr>
-              );
-            })}
-          </tbody>
-        </table>
-      </div>
+                      </>
+                    )}
+                  </div>
+                </div>
+              </div>
+            );
+          })}
+        </div>
+      </>
     );
   }
 
   return (
-    <div className="mx-auto w-full max-w-6xl px-6 py-8">
+    <div className="mx-auto w-full max-w-6xl px-4 py-6 md:px-6 md:py-8">
       {/* 顶部 */}
-      <div className="flex items-start justify-between gap-4">
-        <div>
+      <div className="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between sm:gap-4">
+        <div className="min-w-0">
           <Link
             href="/"
             className="text-sm text-slate-400 transition hover:text-violet-600"
           >
             ← 返回仪表盘
           </Link>
-          <h1 className="mt-2 text-2xl font-bold text-slate-900">{list.name}</h1>
+          <h1 className="mt-2 text-xl font-bold text-slate-900 md:text-2xl">{list.name}</h1>
           {list.description && (
             <p className="mt-1 text-sm text-slate-500">{list.description}</p>
           )}
@@ -493,7 +574,7 @@ export function ListDetailClient({
             </span>
           </div>
         </div>
-        <div className="flex gap-2">
+        <div className="flex gap-2 sm:shrink-0">
           <button
             onClick={() => setShowShare(true)}
             className="rounded-lg border border-slate-300 bg-white px-4 py-2 text-sm font-medium text-slate-700 transition hover:border-violet-300 hover:text-violet-700"
@@ -504,19 +585,19 @@ export function ListDetailClient({
       </div>
 
       {/* 工具栏 */}
-      <div className="mt-8 flex flex-wrap items-center gap-2">
+      <div className="mt-6 flex flex-wrap items-center gap-2 md:mt-8">
         {canEdit && (
           <>
             <button
               onClick={openCreate}
-              className="rounded-lg bg-violet-600 px-4 py-2 text-sm font-semibold text-white transition hover:bg-violet-700"
+              className="rounded-lg bg-violet-600 px-3 py-1.5 text-sm font-semibold text-white transition hover:bg-violet-700 md:px-4 md:py-2"
             >
               + 添加备件
             </button>
             <button
               onClick={() => fileInputRef.current?.click()}
               disabled={importing}
-              className="rounded-lg border border-slate-300 bg-white px-4 py-2 text-sm font-medium text-slate-700 transition hover:border-violet-300 hover:text-violet-700 disabled:opacity-60"
+              className="rounded-lg border border-slate-300 bg-white px-3 py-1.5 text-sm font-medium text-slate-700 transition hover:border-violet-300 hover:text-violet-700 disabled:opacity-60 md:px-4 md:py-2"
             >
               {importing ? "导入中…" : "⬆ 导入"}
             </button>
@@ -526,11 +607,11 @@ export function ListDetailClient({
                 onChange={(e) => setNewGroupName(e.target.value)}
                 onKeyDown={(e) => e.key === "Enter" && handleAddGroup()}
                 placeholder="新建分组…"
-                className="w-36 rounded-lg border border-slate-300 px-3 py-2 text-sm focus:border-violet-500 focus:outline-none focus:ring-2 focus:ring-violet-200"
+                className="w-28 rounded-lg border border-slate-300 px-3 py-1.5 text-sm focus:border-violet-500 focus:outline-none focus:ring-2 focus:ring-violet-200 md:w-36 md:py-2"
               />
               <button
                 onClick={handleAddGroup}
-                className="rounded-lg border border-slate-300 px-3 py-2 text-sm font-medium text-slate-600 transition hover:bg-slate-50"
+                className="rounded-lg border border-slate-300 px-2.5 py-1.5 text-sm font-medium text-slate-600 transition hover:bg-slate-50 md:px-3 md:py-2"
               >
                 新建分组
               </button>
@@ -539,13 +620,13 @@ export function ListDetailClient({
         )}
         <button
           onClick={handleExport}
-          className="rounded-lg border border-slate-300 bg-white px-4 py-2 text-sm font-medium text-slate-700 transition hover:border-violet-300 hover:text-violet-700"
+          className="rounded-lg border border-slate-300 bg-white px-3 py-1.5 text-sm font-medium text-slate-700 transition hover:border-violet-300 hover:text-violet-700 md:px-4 md:py-2"
         >
           ⬇ 导出
         </button>
         <button
           onClick={handleManualRefresh}
-          className="rounded-lg border border-slate-300 bg-white px-4 py-2 text-sm font-medium text-slate-700 transition hover:border-violet-300 hover:text-violet-700"
+          className="rounded-lg border border-slate-300 bg-white px-3 py-1.5 text-sm font-medium text-slate-700 transition hover:border-violet-300 hover:text-violet-700 md:px-4 md:py-2"
           title="立即刷新，获取他人最新修改"
         >
           ⟳ 刷新
@@ -600,7 +681,7 @@ export function ListDetailClient({
                 </div>
               )}
               {canEdit && (
-                <div className="flex gap-2 text-xs">
+                <div className="flex shrink-0 gap-2 text-xs">
                   {renamingGroupId !== group.id && (
                     <button
                       onClick={() => {
@@ -649,7 +730,7 @@ export function ListDetailClient({
             </h3>
             <p className="mt-1 text-sm text-slate-500">填写备件计划信息</p>
             <form onSubmit={handleSubmit} className="mt-5 space-y-4">
-              <div className="grid grid-cols-2 gap-3">
+              <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
                 <div className="col-span-2">
                   <label className="mb-1.5 block text-sm font-medium text-slate-700">名称 *</label>
                   <input

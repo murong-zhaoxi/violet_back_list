@@ -23,10 +23,10 @@ export default async function HomePage() {
   });
 
   return (
-    <div className="mx-auto w-full max-w-5xl px-6 py-10">
-      <header className="flex items-center justify-between">
-        <div>
-          <h1 className="text-2xl font-bold text-slate-900">
+    <div className="mx-auto w-full max-w-5xl px-4 py-6 md:px-6 md:py-10">
+      <header className="flex flex-wrap items-center justify-between gap-3">
+        <div className="min-w-0">
+          <h1 className="text-xl font-bold text-slate-900 md:text-2xl">
             你好，{user?.name || "朋友"} 👋
           </h1>
           <p className="mt-1 text-sm text-slate-500">这里是您的备件计划清单</p>
