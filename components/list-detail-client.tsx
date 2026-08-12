@@ -25,7 +25,7 @@ type Item = {
 };
 
 type Group = { id: string; name: string; sortOrder: number };
-type Member = { id: string; user: { id: string; name: string; email: string } };
+type Member = { id: string; role: Role; user: { id: string; name: string; email: string } };
 
 type ListData = {
   id: string;

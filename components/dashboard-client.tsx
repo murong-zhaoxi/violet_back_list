@@ -8,7 +8,7 @@ type ListWithMeta = {
   id: string;
   name: string;
   description: string | null;
-  updatedAt: string;
+  updatedAt: Date | string;
   members: { user: { id: string; name: string } }[];
   _count: { items: number; groups: number };
 };

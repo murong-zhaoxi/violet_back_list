@@ -47,7 +47,7 @@ export async function POST(
     prisma.group.findMany({ where: { listId } }),
     prisma.listMember.findMany({
       where: { listId },
-      include: { user: { select: { id: true, name: true } } },
+      include: { user: { select: { id: true, name: true, email: true } } },
     }),
   ]);
 
