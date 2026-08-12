@@ -3,6 +3,7 @@ import { redirect } from "next/navigation";
 import { authOptions } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
 import { LogoutButton } from "@/components/logout-button";
+import { DashboardClient } from "@/components/dashboard-client";
 
 export default async function HomePage() {
   const session = await getServerSession(authOptions);
@@ -10,7 +11,15 @@ export default async function HomePage() {
 
   const user = await prisma.user.findUnique({
     where: { id: session.user.id },
-    include: { memberships: { include: { list: true }, orderBy: { createdAt: "desc" } } },
+  });
+
+  const lists = await prisma.list.findMany({
+    where: { members: { some: { userId: session.user.id } } },
+    include: {
+      members: { include: { user: { select: { id: true, name: true } } } },
+      _count: { select: { items: true, groups: true } },
+    },
+    orderBy: { updatedAt: "desc" },
   });
 
   return (
@@ -25,20 +34,7 @@ export default async function HomePage() {
         <LogoutButton />
       </header>
 
-      <main className="mt-10">
-        <div className="flex items-center justify-between">
-          <h2 className="text-lg font-semibold text-slate-900">我的清单</h2>
-          <button className="rounded-lg bg-violet-600 px-4 py-2 text-sm font-semibold text-white transition hover:bg-violet-700">
-            + 新建清单
-          </button>
-        </div>
-
-        <div className="mt-4 rounded-2xl border-2 border-dashed border-slate-200 bg-white p-14 text-center">
-          <div className="text-4xl">📭</div>
-          <p className="mt-3 text-sm font-medium text-slate-700">还没有清单</p>
-          <p className="mt-1 text-sm text-slate-400">创建第一份备件计划清单，开始协作吧</p>
-        </div>
-      </main>
+      <DashboardClient initialLists={lists} />
     </div>
   );
 }
