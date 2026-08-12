@@ -1,8 +1,9 @@
 "use client";
 
-import { useState, useRef } from "react";
+import { useState, useRef, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
+import useSWR from "swr";
 import * as XLSX from "xlsx";
 import type { Role, ItemStatus } from "@/generated/prisma/enums";
 import { ShareDialog } from "@/components/share-dialog";
@@ -93,7 +94,37 @@ export function ListDetailClient({
   const [activeCommentItem, setActiveCommentItem] = useState<Item | null>(null);
   const [importing, setImporting] = useState(false);
   const [importMsg, setImportMsg] = useState("");
+  const [lastSync, setLastSync] = useState<Date | null>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
+
+  // 准实时刷新：每 20 秒轮询服务端，同步他人修改
+  const { data: remoteData, mutate: refreshData } = useSWR(
+    `/api/lists/${list.id}`,
+    (url: string) => fetch(url).then((r) => r.json()),
+    { refreshInterval: 20000 }
+  );
+
+  useEffect(() => {
+    if (remoteData?.list && !showForm && !activeCommentItem && !showShare) {
+      setList(remoteData.list);
+      setLastSync(new Date());
+    }
+  }, [remoteData, showForm, activeCommentItem, showShare]);
+
+  async function handleManualRefresh() {
+    try {
+      const res = await fetch(`/api/lists/${list.id}`);
+      if (res.ok) {
+        const data = await res.json();
+        if (data.list) {
+          setList(data.list);
+          setLastSync(new Date());
+        }
+      }
+    } catch {
+      // 忽略刷新失败
+    }
+  }
 
   function handleExport() {
     const a = document.createElement("a");
@@ -512,6 +543,16 @@ export function ListDetailClient({
         >
           ⬇ 导出
         </button>
+        <button
+          onClick={handleManualRefresh}
+          className="rounded-lg border border-slate-300 bg-white px-4 py-2 text-sm font-medium text-slate-700 transition hover:border-violet-300 hover:text-violet-700"
+          title="立即刷新，获取他人最新修改"
+        >
+          ⟳ 刷新
+        </button>
+        <span className="text-xs text-slate-400">
+          {lastSync ? `已同步 ${lastSync.toLocaleTimeString("zh-CN", { hour: "2-digit", minute: "2-digit", second: "2-digit" })}` : "每 20 秒自动同步"}
+        </span>
         <input
           ref={fileInputRef}
           type="file"
