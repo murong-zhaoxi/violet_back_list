@@ -50,6 +50,7 @@ model List {
   description String?
   members     ListMember[]
   groups      Group[]
+  items       Item[]
   createdAt   DateTime     @default(now())
   updatedAt   DateTime     @updatedAt
 }
