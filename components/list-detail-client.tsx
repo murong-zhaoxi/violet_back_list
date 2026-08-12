@@ -4,6 +4,7 @@ import { useState } from "react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
 import type { Role, ItemStatus } from "@/generated/prisma/enums";
+import { ShareDialog } from "@/components/share-dialog";
 
 type Item = {
   id: string;
@@ -83,6 +84,7 @@ export function ListDetailClient({
   const [newGroupName, setNewGroupName] = useState("");
   const [renamingGroupId, setRenamingGroupId] = useState<string | null>(null);
   const [renameValue, setRenameValue] = useState("");
+  const [showShare, setShowShare] = useState(false);
 
   // 按分组排序后的组列表 + 计算编号
   const sortedGroups = [...list.groups].sort((a, b) => a.sortOrder - b.sortOrder);
@@ -382,6 +384,14 @@ export function ListDetailClient({
             </span>
           </div>
         </div>
+        <div className="flex gap-2">
+          <button
+            onClick={() => setShowShare(true)}
+            className="rounded-lg border border-slate-300 bg-white px-4 py-2 text-sm font-medium text-slate-700 transition hover:border-violet-300 hover:text-violet-700"
+          >
+            👥 共享
+          </button>
+        </div>
       </div>
 
       {/* 工具栏 */}
@@ -617,6 +627,15 @@ export function ListDetailClient({
             </form>
           </div>
         </div>
+      )}
+
+      {showShare && (
+        <ShareDialog
+          listId={list.id}
+          members={list.members}
+          myRole={myRole}
+          onClose={() => setShowShare(false)}
+        />
       )}
     </div>
   );
