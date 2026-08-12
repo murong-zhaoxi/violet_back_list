@@ -1,8 +1,9 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useRef } from "react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
+import * as XLSX from "xlsx";
 import type { Role, ItemStatus } from "@/generated/prisma/enums";
 import { ShareDialog } from "@/components/share-dialog";
 import { CommentsDialog } from "@/components/comments-dialog";
@@ -90,6 +91,59 @@ export function ListDetailClient({
   const [renameValue, setRenameValue] = useState("");
   const [showShare, setShowShare] = useState(false);
   const [activeCommentItem, setActiveCommentItem] = useState<Item | null>(null);
+  const [importing, setImporting] = useState(false);
+  const [importMsg, setImportMsg] = useState("");
+  const fileInputRef = useRef<HTMLInputElement>(null);
+
+  function handleExport() {
+    const a = document.createElement("a");
+    a.href = `/api/lists/${list.id}/export`;
+    a.click();
+  }
+
+  async function handleImportFile(e: React.ChangeEvent<HTMLInputElement>) {
+    const file = e.target.files?.[0];
+    e.target.value = "";
+    if (!file) return;
+    setImporting(true);
+    setImportMsg("");
+    try {
+      const buf = await file.arrayBuffer();
+      const wb = XLSX.read(buf, { type: "array" });
+      const sheet = wb.Sheets[wb.SheetNames[0]];
+      const rows = XLSX.utils.sheet_to_json<Record<string, unknown>>(sheet);
+      const payload = rows.map((r) => ({
+        name: r["名称"] ?? r["name"],
+        model: r["型号规格"] ?? r["型号"] ?? r["model"],
+        qty: r["数量"] ?? r["qty"],
+        unit: r["单位"] ?? r["unit"],
+        assignee: r["负责人"] ?? r["assignee"],
+        status: r["状态"] ?? r["status"],
+        notes: r["备注"] ?? r["notes"],
+        group: r["分组"] ?? r["group"],
+      }));
+      if (payload.length === 0) {
+        setImportMsg("文件中没有可导入的数据");
+        return;
+      }
+      const res = await fetch(`/api/lists/${list.id}/import`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(payload),
+      });
+      const data = await res.json();
+      if (!res.ok) {
+        setImportMsg(data.error || "导入失败");
+        return;
+      }
+      setImportMsg(`✅ 成功导入 ${data.count} 条备件`);
+      router.refresh();
+    } catch {
+      setImportMsg("导入失败，请检查文件格式（支持 .xlsx / .csv）");
+    } finally {
+      setImporting(false);
+    }
+  }
 
   function updateCommentCount(itemId: string, count: number) {
     setList((prev) => ({
@@ -428,6 +482,13 @@ export function ListDetailClient({
             >
               + 添加备件
             </button>
+            <button
+              onClick={() => fileInputRef.current?.click()}
+              disabled={importing}
+              className="rounded-lg border border-slate-300 bg-white px-4 py-2 text-sm font-medium text-slate-700 transition hover:border-violet-300 hover:text-violet-700 disabled:opacity-60"
+            >
+              {importing ? "导入中…" : "⬆ 导入"}
+            </button>
             <div className="flex items-center gap-2">
               <input
                 value={newGroupName}
@@ -444,6 +505,22 @@ export function ListDetailClient({
               </button>
             </div>
           </>
+        )}
+        <button
+          onClick={handleExport}
+          className="rounded-lg border border-slate-300 bg-white px-4 py-2 text-sm font-medium text-slate-700 transition hover:border-violet-300 hover:text-violet-700"
+        >
+          ⬇ 导出
+        </button>
+        <input
+          ref={fileInputRef}
+          type="file"
+          hidden
+          accept=".xlsx,.xls,.csv"
+          onChange={handleImportFile}
+        />
+        {importMsg && (
+          <span className="text-sm font-medium text-slate-600">{importMsg}</span>
         )}
       </div>
 
