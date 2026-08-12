@@ -5,6 +5,7 @@ import { useRouter } from "next/navigation";
 import Link from "next/link";
 import type { Role, ItemStatus } from "@/generated/prisma/enums";
 import { ShareDialog } from "@/components/share-dialog";
+import { CommentsDialog } from "@/components/comments-dialog";
 
 type Item = {
   id: string;
@@ -18,6 +19,7 @@ type Item = {
   notes: string | null;
   groupId: string | null;
   sortOrder: number;
+  _count?: { comments: number };
 };
 
 type Group = { id: string; name: string; sortOrder: number };
@@ -68,9 +70,11 @@ const emptyForm: FormState = {
 export function ListDetailClient({
   list: initialList,
   myRole,
+  myUserId,
 }: {
   list: ListData;
   myRole: Role;
+  myUserId: string;
 }) {
   const router = useRouter();
   const canEdit = myRole !== "VIEWER";
@@ -85,6 +89,16 @@ export function ListDetailClient({
   const [renamingGroupId, setRenamingGroupId] = useState<string | null>(null);
   const [renameValue, setRenameValue] = useState("");
   const [showShare, setShowShare] = useState(false);
+  const [activeCommentItem, setActiveCommentItem] = useState<Item | null>(null);
+
+  function updateCommentCount(itemId: string, count: number) {
+    setList((prev) => ({
+      ...prev,
+      items: prev.items.map((i) =>
+        i.id === itemId ? { ...i, _count: { comments: count } } : i
+      ),
+    }));
+  }
 
   // 按分组排序后的组列表 + 计算编号
   const sortedGroups = [...list.groups].sort((a, b) => a.sortOrder - b.sortOrder);
@@ -270,6 +284,7 @@ export function ListDetailClient({
               <th className="px-4 py-2 font-medium w-24">数量</th>
               <th className="px-4 py-2 font-medium w-28">负责人</th>
               <th className="px-4 py-2 font-medium w-28">状态</th>
+              <th className="px-4 py-2 font-medium w-20">评论</th>
               {canEdit && <th className="px-4 py-2 font-medium w-28 text-right">操作</th>}
             </tr>
           </thead>
@@ -323,6 +338,15 @@ export function ListDetailClient({
                         {meta.label}
                       </span>
                     )}
+                  </td>
+                  <td className="px-4 py-3">
+                    <button
+                      onClick={() => setActiveCommentItem(item)}
+                      className="inline-flex items-center gap-1 rounded-md px-2 py-1 text-xs font-medium text-slate-500 transition hover:bg-violet-50 hover:text-violet-600"
+                      title="查看/发表评论"
+                    >
+                      💬 {item._count?.comments ?? 0}
+                    </button>
                   </td>
                   {canEdit && (
                     <td className="px-4 py-3">
@@ -635,6 +659,17 @@ export function ListDetailClient({
           members={list.members}
           myRole={myRole}
           onClose={() => setShowShare(false)}
+        />
+      )}
+
+      {activeCommentItem && (
+        <CommentsDialog
+          itemId={activeCommentItem.id}
+          itemName={activeCommentItem.name}
+          myRole={myRole}
+          myUserId={myUserId}
+          onClose={() => setActiveCommentItem(null)}
+          onCountChange={updateCommentCount}
         />
       )}
     </div>

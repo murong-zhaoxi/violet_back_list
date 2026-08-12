@@ -29,7 +29,10 @@ export default async function ListDetailPage({
       },
       groups: { orderBy: { sortOrder: "asc" } },
       items: {
-        include: { assignee: { select: { id: true, name: true } } },
+        include: {
+          assignee: { select: { id: true, name: true } },
+          _count: { select: { comments: true } },
+        },
         orderBy: [{ sortOrder: "asc" }],
       },
       _count: { select: { items: true } },
@@ -42,6 +45,7 @@ export default async function ListDetailPage({
     <ListDetailClient
       list={list}
       myRole={membership.role as Role}
+      myUserId={session.user.id}
     />
   );
 }
