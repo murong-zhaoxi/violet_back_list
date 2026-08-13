@@ -1,8 +1,8 @@
 @import "tailwindcss";
 
 :root {
-  --background: #ffffff;
-  --foreground: #171717;
+  --background: #f5f6fa;
+  --foreground: #0f172a;
 }
 
 @theme inline {
@@ -12,15 +12,11 @@
   --font-mono: var(--font-geist-mono);
 }
 
-@media (prefers-color-scheme: dark) {
-  :root {
-    --background: #0a0a0a;
-    --foreground: #ededed;
-  }
-}
-
 body {
-  background: var(--background);
-  color: var(--foreground);
+  /* 固定浅色主题：应用所有组件均为浅色设计，
+     若跟随系统深色模式会把 body 背景变深色，导致深色文字不可见。
+     因此强制浅色背景，保证任何系统主题下文字都清晰可读。 */
+  background: #f5f6fa;
+  color: #0f172a;
   font-family: Arial, Helvetica, sans-serif;
 }
