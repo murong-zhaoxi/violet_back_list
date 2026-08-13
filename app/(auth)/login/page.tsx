@@ -5,6 +5,7 @@ import { signIn } from "next-auth/react";
 import { useRouter, useSearchParams } from "next/navigation";
 import Link from "next/link";
 import { Suspense } from "react";
+import { Toast, type ToastType } from "@/components/toast";
 
 function LoginForm() {
   const router = useRouter();
@@ -15,6 +16,7 @@ function LoginForm() {
   const [password, setPassword] = useState("");
   const [error, setError] = useState("");
   const [loading, setLoading] = useState(false);
+  const [toast, setToast] = useState<{ message: string; type: ToastType } | null>(null);
 
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
@@ -28,19 +30,29 @@ function LoginForm() {
       });
       if (res?.error) {
         setError("邮箱或密码不正确");
+        setToast({ type: "error", message: "登录失败：邮箱或密码不正确" });
       } else {
-        router.push(callbackUrl);
-        router.refresh();
+        setToast({ type: "success", message: "登录成功！欢迎回来" });
+        // 短暂展示成功提示后跳转
+        setTimeout(() => {
+          router.push(callbackUrl);
+          router.refresh();
+        }, 800);
       }
     } catch {
       setError("登录失败，请稍后重试");
+      setToast({ type: "error", message: "登录失败，请稍后重试" });
     } finally {
       setLoading(false);
     }
   }
 
   return (
-    <div className="rounded-2xl border border-slate-200 bg-white p-8 shadow-xl shadow-slate-200/50">
+    <>
+      {toast && (
+        <Toast message={toast.message} type={toast.type} onClose={() => setToast(null)} />
+      )}
+      <div className="rounded-2xl border border-slate-200 bg-white p-8 shadow-xl shadow-slate-200/50">
       <h2 className="text-xl font-semibold text-slate-900">欢迎回来</h2>
       <p className="mt-1 text-sm text-slate-500">登录以继续管理您的备件计划清单</p>
 
@@ -93,7 +105,8 @@ function LoginForm() {
           立即注册
         </Link>
       </p>
-    </div>
+      </div>
+    </>
   );
 }
 

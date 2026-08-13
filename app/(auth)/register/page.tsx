@@ -1,9 +1,9 @@
 "use client";
 
 import { useState } from "react";
-import { signIn } from "next-auth/react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
+import { Toast, type ToastType } from "@/components/toast";
 
 export default function RegisterPage() {
   const router = useRouter();
@@ -13,10 +13,12 @@ export default function RegisterPage() {
   const [confirm, setConfirm] = useState("");
   const [error, setError] = useState("");
   const [loading, setLoading] = useState(false);
+  const [toast, setToast] = useState<{ message: string; type: ToastType } | null>(null);
 
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
     setError("");
+    setToast(null);
 
     if (password !== confirm) {
       setError("两次输入的密码不一致");
@@ -33,22 +35,14 @@ export default function RegisterPage() {
       const data = await res.json();
       if (!res.ok) {
         setError(data.error || "注册失败");
+        setToast({ type: "error", message: data.error || "注册失败" });
         return;
       }
-      // 注册成功，自动登录
-      const signInRes = await signIn("credentials", {
-        email,
-        password,
-        redirect: false,
-      });
-      if (signInRes?.error) {
-        router.push("/login");
-      } else {
-        router.push("/");
-        router.refresh();
-      }
+      // 注册成功，跳转到注册成功页
+      router.push("/register/success");
     } catch {
       setError("注册失败，请稍后重试");
+      setToast({ type: "error", message: "注册失败，请稍后重试" });
     } finally {
       setLoading(false);
     }
@@ -58,7 +52,11 @@ export default function RegisterPage() {
     "w-full rounded-lg border border-slate-300 px-3.5 py-2.5 text-sm text-slate-900 placeholder:text-slate-400 focus:border-violet-500 focus:outline-none focus:ring-2 focus:ring-violet-200";
 
   return (
-    <div className="rounded-2xl border border-slate-200 bg-white p-8 shadow-xl shadow-slate-200/50">
+    <>
+      {toast && (
+        <Toast message={toast.message} type={toast.type} onClose={() => setToast(null)} />
+      )}
+      <div className="rounded-2xl border border-slate-200 bg-white p-8 shadow-xl shadow-slate-200/50">
       <h2 className="text-xl font-semibold text-slate-900">创建账号</h2>
       <p className="mt-1 text-sm text-slate-500">注册后即可创建和协作备件计划清单</p>
 
@@ -140,6 +138,7 @@ export default function RegisterPage() {
           去登录
         </Link>
       </p>
-    </div>
+      </div>
+    </>
   );
 }
