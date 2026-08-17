@@ -32,7 +32,11 @@ export async function GET(
       members: { include: { user: { select: { id: true, name: true, email: true } } } },
       groups: { orderBy: { sortOrder: "asc" } },
       items: {
-        include: { assignee: { select: { id: true, name: true } }, group: true },
+        include: {
+          assignee: { select: { id: true, name: true } },
+          group: true,
+          _count: { select: { comments: true } },
+        },
         orderBy: [{ groupId: "asc" }, { sortOrder: "asc" }],
       },
       _count: { select: { items: true } },

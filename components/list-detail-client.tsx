@@ -185,6 +185,24 @@ export function ListDetailClient({
     }));
   }
 
+  // 关闭评论弹窗：先立即重新拉取最新数据（含最新评论数），
+  // 避免 SWR 轮询缓存的旧数据把刚更新的计数覆盖回 0
+  async function handleCloseComments() {
+    setActiveCommentItem(null);
+    try {
+      const res = await fetch(`/api/lists/${list.id}`);
+      if (res.ok) {
+        const data = await res.json();
+        if (data.list) {
+          setList(data.list);
+          setLastSync(new Date());
+        }
+      }
+    } catch {
+      // 忽略刷新失败，保留本地状态
+    }
+  }
+
   // 按分组排序后的组列表 + 计算编号
   const sortedGroups = [...list.groups].sort((a, b) => a.sortOrder - b.sortOrder);
   const groupIndex = (groupId: string | null) => {
@@ -869,7 +887,7 @@ export function ListDetailClient({
           itemName={activeCommentItem.name}
           myRole={myRole}
           myUserId={myUserId}
-          onClose={() => setActiveCommentItem(null)}
+          onClose={handleCloseComments}
           onCountChange={updateCommentCount}
         />
       )}
