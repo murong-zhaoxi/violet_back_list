@@ -331,10 +331,6 @@ export type ListScalarRelationFilter = {
   isNot?: Prisma.ListWhereInput
 }
 
-export type NullableStringFieldUpdateOperationsInput = {
-  set?: string | null
-}
-
 export type ListCreateNestedOneWithoutMembersInput = {
   create?: Prisma.XOR<Prisma.ListCreateWithoutMembersInput, Prisma.ListUncheckedCreateWithoutMembersInput>
   connectOrCreate?: Prisma.ListCreateOrConnectWithoutMembersInput

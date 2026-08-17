@@ -706,19 +706,21 @@ export function ListDetailClient({
           </section>
         ))}
 
-        {/* 未分组 */}
-        <section className="overflow-hidden rounded-2xl border border-dashed border-slate-300 bg-white">
-          <header className="flex items-center justify-between border-b border-slate-100 bg-slate-50/60 px-4 py-3">
-            <div className="flex items-center gap-2">
-              <span className="font-mono text-sm font-semibold text-slate-500">
-                {sortedGroups.length + 1}
-              </span>
-              <h3 className="text-sm font-semibold text-slate-900">未分组</h3>
-              <span className="text-xs text-slate-400">{itemsOfGroup(null).length} 项</span>
-            </div>
-          </header>
-          {renderTable(null)}
-        </section>
+        {/* 未分组（仅当存在未分组备件时显示，避免空占位无法删除） */}
+        {itemsOfGroup(null).length > 0 && (
+          <section className="overflow-hidden rounded-2xl border border-dashed border-slate-300 bg-white">
+            <header className="flex items-center justify-between border-b border-slate-100 bg-slate-50/60 px-4 py-3">
+              <div className="flex items-center gap-2">
+                <span className="font-mono text-sm font-semibold text-slate-500">
+                  {sortedGroups.length + 1}
+                </span>
+                <h3 className="text-sm font-semibold text-slate-900">未分组</h3>
+                <span className="text-xs text-slate-400">{itemsOfGroup(null).length} 项</span>
+              </div>
+            </header>
+            {renderTable(null)}
+          </section>
+        )}
       </div>
 
       {/* 添加/编辑备件弹窗 */}

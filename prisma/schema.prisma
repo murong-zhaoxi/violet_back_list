@@ -35,6 +35,7 @@ model User {
   email        String       @unique
   passwordHash String
   name         String
+  avatar       String?
   memberships  ListMember[]
   assignedItems Item[]      @relation("ItemAssignee")
   comments     Comment[]
